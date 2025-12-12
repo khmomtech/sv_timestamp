@@ -1,0 +1,27 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sv_timestamp/models/template_model.dart';
+import 'package:sv_timestamp/pages/home_page.dart';
+import 'package:sv_timestamp/pages/template_editor.dart';
+
+void main() {
+  runApp(const SVTimeStampApp());
+}
+
+class SVTimeStampApp extends StatelessWidget {
+  const SVTimeStampApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => TemplateModel(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'SV TimeStamp',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: const HomePage(),
+        routes: {TemplateEditor.routeName: (_) => const TemplateEditor()},
+      ),
+    );
+  }
+}
