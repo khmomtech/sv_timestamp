@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -22,6 +23,26 @@ class StorageService extends ChangeNotifier {
 
   Future<CapturedImage?> captureImage() async {
     try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        // Optionally, you can show a dialog to the user here
+        debugPrint('Location services are disabled.');
+        return null;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission != LocationPermission.whileInUse &&
+            permission != LocationPermission.always) {
+          debugPrint('Location permission denied.');
+          return null;
+        }
+      }
+
+      // Capture image from camera
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
@@ -77,6 +98,7 @@ class StorageService extends ChangeNotifier {
 
       return capturedImage;
     } catch (e) {
+      debugPrint('Error capturing image: $e');
       return null;
     }
   }
