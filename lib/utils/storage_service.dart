@@ -123,7 +123,7 @@ class StorageService extends ChangeNotifier {
         timestamp: timestamp,
         location: location,
         address: address,
-        additionalData: {'device': 'Mobile', 'app': 'SV TimeStamp'},
+        additionalData: {'device': 'Mobile', 'app': 'SV'},
       );
 
       _capturedImages.insert(0, capturedImage);

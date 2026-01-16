@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
+
 import 'package:sv_timestamp/screens/camera_screen.dart';
 import 'package:sv_timestamp/theme/app_theme.dart';
 import 'package:sv_timestamp/utils/emoji_manager.dart';
 import 'package:sv_timestamp/utils/metadata_service.dart';
+import 'package:sv_timestamp/utils/setting_provider.dart';
 import 'package:sv_timestamp/utils/storage_service.dart';
-import 'package:sv_timestamp/utils/app_shortcuts.dart'; // Import AppShortcuts
+import 'package:sv_timestamp/utils/app_shortcuts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,19 +27,34 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => StorageService())],
-      child: MaterialApp(
-        title: 'SV TimeStamp',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        home: const CameraScreenWithShortcuts(), // Use wrapped version
-        debugShowCheckedModeBanner: false,
+      providers: [
+        ChangeNotifierProvider(create: (_) => StorageService()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+      ],
+      child: Consumer<SettingsProvider>(
+        builder: (context, settingsProvider, _) {
+          return MaterialApp(
+            title: 'SV TimeStamp',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            locale: settingsProvider.currentLocale,
+            supportedLocales: const [Locale('en', 'US'), Locale('km', 'KH')],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const CameraScreenWithShortcuts(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }
 }
 
-// Wrapper widget to initialize shortcuts
+/// Wrapper widget to initialize shortcuts
 class CameraScreenWithShortcuts extends StatefulWidget {
   const CameraScreenWithShortcuts({super.key});
 
@@ -48,7 +67,6 @@ class _CameraScreenWithShortcutsState extends State<CameraScreenWithShortcuts> {
   @override
   void initState() {
     super.initState();
-    // Initialize shortcuts after the widget is mounted
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AppShortcuts.initialize(context);
     });

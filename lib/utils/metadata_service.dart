@@ -6,13 +6,14 @@ import 'package:geocoding/geocoding.dart';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 
 class MetadataService {
   static Map<String, img.Image> _emojiCache = {};
 
   static String? _customLogoPath;
   static String? _customLogoBase64;
-  static String _appTitle = 'SV Timestamp';
+  static String _appTitle = '';
 
   // static int fontSize = 20;
 
@@ -24,7 +25,7 @@ class MetadataService {
   static Future<void> initializeSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    _appTitle = prefs.getString('app_title') ?? 'SV Timestamp';
+    _appTitle = prefs.getString('app_title') ?? '';
     _customLogoPath = prefs.getString('custom_logo_path');
 
     _watermarkSize = prefs.getDouble('watermark_size');
@@ -66,7 +67,7 @@ class MetadataService {
   }
 
   static void setAppTitle(String title) {
-    _appTitle = title.isNotEmpty ? title : 'SV Timestamp';
+    _appTitle = title.isNotEmpty ? title : '';
   }
 
   // Get GPS Coordinates
@@ -212,13 +213,19 @@ class MetadataService {
     Uint8List originalImage,
     DateTime timestamp,
     Map<String, double>? location,
-    String? address,
-  ) async {
+    String? address, {
+    String? locationLabel,
+    String? addressLabel,
+    String? datetimeLabel,
+  }) async {
     return await _legacyAddMetadataToImage(
       originalImage,
       timestamp,
       location,
       address,
+      locationLabel: locationLabel,
+      addressLabel: addressLabel,
+      datetimeLabel: datetimeLabel,
     );
   }
 
@@ -251,162 +258,15 @@ class MetadataService {
     }
   }
 
-  // static Future<Uint8List> _legacyAddMetadataToImage(
-  //   Uint8List originalImage,
-  //   DateTime timestamp,
-  //   Map<String, double>? location,
-  //   String? address,
-  // ) async {
-  //   img.Image? image = img.decodeImage(originalImage);
-  //   if (image == null) return originalImage;
-
-  //   // ---- TIME FORMAT ----
-  //   final hour12 = timestamp.hour % 12 == 0 ? 12 : timestamp.hour % 12;
-  //   final amPm = timestamp.hour >= 12 ? 'PM' : 'AM';
-
-  //   final months = [
-  //     'Jan',
-  //     'Feb',
-  //     'Mar',
-  //     'Apr',
-  //     'May',
-  //     'Jun',
-  //     'Jul',
-  //     'Aug',
-  //     'Sep',
-  //     'Oct',
-  //     'Nov',
-  //     'Dec',
-  //   ];
-  //   final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-  //   final dateText =
-  //       '${timestamp.day} ${months[timestamp.month - 1]} ${timestamp.year}, '
-  //       '${days[timestamp.weekday - 1]}';
-
-  //   // ---- STYLES (BIG) ----
-  //   final prefs = await SharedPreferences.getInstance();
-
-  //   final double fontSizeDouble = prefs.getDouble('watermark_size') ?? 20.0;
-
-  //   final int fontSize = fontSizeDouble.toInt();
-
-  //   print("fontSize double: $fontSizeDouble");
-  //   print("fontSize int: $fontSize");
-
-  //   final int lineHeight = (fontSize * 1.4).toInt();
-  //   const int leftMargin = 40;
-  //   const int bottomPadding = 40;
-
-  //   // ---- LOGO (VERY BIG) ----
-  //   final logoImage = await loadLogoImage();
-  //   final logo = logoImage != null
-  //       ? img.copyResize(logoImage, width: 250) // ⬅ BIG LOGO
-  //       : null;
-
-  //   // ---- CALCULATE HEIGHT SAFELY ----
-  //   int textLines = 2; // title + datetime
-  //   if (address != null && address.isNotEmpty) textLines++;
-  //   if (location != null) textLines++;
-
-  //   final int logoHeight = logo?.height ?? 0;
-  //   final int spacingAfterLogo = logo != null ? 40 : 0;
-  //   final int totalTextHeight = textLines * lineHeight;
-
-  //   final int totalWatermarkHeight =
-  //       logoHeight + spacingAfterLogo + totalTextHeight;
-
-  //   // ---- SAFE START Y ----
-  //   int currentY = image.height - totalWatermarkHeight - bottomPadding;
-
-  //   if (currentY < 20) currentY = 20; // ⬅ clamp to top-safe area
-
-  //   // ---- DRAW LOGO ----
-  //   if (logo != null) {
-  //     for (int y = 0; y < logo.height; y++) {
-  //       for (int x = 0; x < logo.width; x++) {
-  //         final p = logo.getPixel(x, y);
-  //         if (p.a == 0) continue;
-
-  //         final tx = leftMargin + x;
-  //         final ty = currentY + y;
-
-  //         if (tx < 0 || ty < 0 || tx >= image.width || ty >= image.height)
-  //           continue;
-
-  //         final bg = image.getPixel(tx, ty);
-  //         final a = p.a / 255.0;
-
-  //         image.setPixelRgba(
-  //           tx,
-  //           ty,
-  //           (p.r * a + bg.r * (1 - a)).toInt(),
-  //           (p.g * a + bg.g * (1 - a)).toInt(),
-  //           (p.b * a + bg.b * (1 - a)).toInt(),
-  //           255,
-  //         );
-  //       }
-  //     }
-  //     currentY += logo.height + spacingAfterLogo;
-  //   }
-
-  //   // ---- TEXT BLOCK ----
-  //   _drawText(
-  //     image,
-  //     _appTitle,
-  //     leftMargin,
-  //     currentY,
-  //     fontSize,
-  //     stroke: true,
-  //     bold: true,
-  //   );
-  //   currentY += lineHeight;
-
-  //   final timeText =
-  //       'Datetime: ${hour12.toString().padLeft(2, '0')}:'
-  //       '${timestamp.minute.toString().padLeft(2, '0')} $amPm | $dateText';
-
-  //   _drawText(image, timeText, leftMargin, currentY, fontSize);
-  //   currentY += lineHeight;
-
-  //   if (address != null && address.isNotEmpty) {
-  //     final wrappedLines = _wrapText(
-  //       'Location: $address',
-  //       fontSize,
-  //       image.width - 100,
-  //     );
-
-  //     for (var line in wrappedLines) {
-  //       _drawText(image, line, leftMargin, currentY, fontSize);
-  //       currentY += lineHeight;
-  //     }
-  //   }
-
-  //   if (location != null) {
-  //     final lat = location['latitude']!;
-  //     final lng = location['longitude']!;
-  //     final latH = lat >= 0 ? 'N' : 'S';
-  //     final lngH = lng >= 0 ? 'E' : 'W';
-
-  //     _drawText(
-  //       image,
-  //       'Lat/Long: ${lat.abs().toStringAsFixed(6)}°$latH, '
-  //       '${lng.abs().toStringAsFixed(6)}°$lngH',
-  //       leftMargin,
-  //       currentY,
-  //       fontSize,
-  //     );
-  //   }
-
-  //   return Uint8List.fromList(img.encodeJpg(image, quality: 95));
-  // }
-
   static Future<Uint8List> _legacyAddMetadataToImage(
     Uint8List originalImage,
     DateTime timestamp,
     Map<String, double>? location,
-    String? address,
-  ) async {
+    String? address, {
+    String? locationLabel,
+    String? addressLabel,
+    String? datetimeLabel,
+  }) async {
     img.Image? image = img.decodeImage(originalImage);
     if (image == null) return originalImage;
 
@@ -430,6 +290,10 @@ class MetadataService {
     ];
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+    print(
+      "locationLabel: $locationLabel, addressLabel: $addressLabel, datetimeLabel: $datetimeLabel",
+    );
+
     final dateText =
         '${timestamp.day} ${months[timestamp.month - 1]} ${timestamp.year}, '
         '${days[timestamp.weekday - 1]}';
@@ -451,7 +315,7 @@ class MetadataService {
 
     // ---- ADDRESS WRAP ----
     final wrappedAddressLines = address != null && address.isNotEmpty
-        ? _wrapText('Location: $address', fontSize, image.width - 100)
+        ? _wrapText('$locationLabel $address', fontSize, image.width - 100)
         : <String>[];
 
     // ---- TOTAL LINES ----
@@ -503,21 +367,23 @@ class MetadataService {
     }
 
     // ---- DRAW TITLE ----
-    _drawText(
-      image,
-      _appTitle,
-      leftMargin,
-      currentY,
-      fontSize + 2,
-      stroke: true,
-      bold: true,
-    );
-    currentY += lineHeight;
+    // _drawText(
+    //   image,
+    //   _appTitle,
+    //   leftMargin,
+    //   currentY,
+    //   fontSize + 2,
+    //   stroke: true,
+    //   bold: true,
+    // );
+    // currentY += lineHeight;
 
     // ---- DRAW DATETIME ----
+
     final timeText =
-        'Datetime: ${hour12.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')} $amPm | $dateText';
+        '$datetimeLabel ${hour12.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')} $amPm | $dateText';
     _drawText(image, timeText, leftMargin, currentY, fontSize);
+
     currentY += lineHeight + 1;
 
     // ---- DRAW ADDRESS (MULTI-LINE) ----

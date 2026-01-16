@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import 'package:sv_timestamp/screens/SettingsScreen.dart';
 import 'package:sv_timestamp/screens/full_screen_image_viewer.dart';
 import 'package:sv_timestamp/widgets/setting_item.dart';
@@ -227,10 +228,6 @@ class CameraScreenState extends State<CameraScreen>
 
     await _controller!.initialize();
 
-    // Update capabilities for new camera
-    // _isFlashSupported = _controller!.value.isFlashSupported;
-    // _isZoomSupported = _controller!.value.isZoomSupported;
-
     if (mounted) {
       setState(() {
         _isCameraReady = true;
@@ -297,15 +294,6 @@ class CameraScreenState extends State<CameraScreen>
 
       // Prepare metadata
       final timestamp = DateTime.now();
-      final metadata = {
-        'timestamp': timestamp.toIso8601String(),
-        'formatted_time': _getFormattedDateTime(),
-        'title': MetadataService.appTitle,
-        'address': _showLocation ? _currentAddress : null,
-        'latitude': _currentCoords?['latitude'],
-        'longitude': _currentCoords?['longitude'],
-        'show_location': _showLocation,
-      };
 
       // Process in background
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -313,12 +301,19 @@ class CameraScreenState extends State<CameraScreen>
           // Read image bytes
           final originalBytes = await File(tempPath).readAsBytes();
 
+          final loc = AppLocalizations.of(context);
+
+          String test = loc!.addressLabel;
+          print("test: $test");
           // Process with MetadataService
           final processedBytes = await MetadataService.addMetadataToImage(
             originalBytes,
             timestamp,
             _currentCoords,
             _showLocation ? _currentAddress : null,
+            locationLabel: loc.locationLabel,
+            addressLabel: loc.addressLabel,
+            datetimeLabel: loc.datetimeLabel,
           );
 
           // Create captured image object
@@ -341,7 +336,7 @@ class CameraScreenState extends State<CameraScreen>
             address: _showLocation ? _currentAddress : null,
             additionalData: {
               'device': 'Mobile',
-              'app': 'SV TimeStamp',
+              'app': 'SV',
               'flash': _currentFlash.toString(),
               'camera': _cameras[_currentCameraIndex].lensDirection.toString(),
               'quality': _imageQuality,
@@ -398,23 +393,7 @@ class CameraScreenState extends State<CameraScreen>
   Widget _buildCameraView() {
     return Stack(
       children: [
-        // Camera Preview
-        // Positioned.fill(
-        //   child: _controller != null && _controller!.value.isInitialized
-        //       ? CameraPreview(_controller!)
-        //       : Container(color: Colors.black),
-        // ),
         Positioned.fill(
-          // child: _controller != null && _controller!.value.isInitialized
-          //     ? FittedBox(
-          //         fit: BoxFit.cover, // fills screen
-          //         child: SizedBox(
-          //           width: _controller!.value.previewSize!.height,
-          //           height: _controller!.value.previewSize!.width,
-          //           child: CameraPreview(_controller!),
-          //         ),
-          //       )
-          //     : Container(color: Colors.black),
           child: _controller != null && _controller!.value.isInitialized
               ? GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -513,29 +492,6 @@ class CameraScreenState extends State<CameraScreen>
               ),
               onPressed: _toggleFlash,
             ),
-            // Zoom Indicator
-            GestureDetector(
-              onTap: null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${_currentZoom.toStringAsFixed(1)}x',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-
             // Switch Camera
             IconButton(
               icon: const Icon(
@@ -994,15 +950,5 @@ class CameraScreenState extends State<CameraScreen>
         _initializeCamera();
       }
     }
-  }
-
-  String _getFormattedDateTime() {
-    final now = DateTime.now();
-    return "${now.hour.toString().padLeft(2, '0')}:"
-        "${now.minute.toString().padLeft(2, '0')}:"
-        "${now.second.toString().padLeft(2, '0')} | "
-        "${now.day.toString().padLeft(2, '0')}/"
-        "${now.month.toString().padLeft(2, '0')}/"
-        "${now.year}";
   }
 }

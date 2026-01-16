@@ -4,6 +4,12 @@ import 'package:camera/camera.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sv_timestamp/screens/SettingsScreen.dart';
+import 'package:sv_timestamp/screens/full_screen_image_viewer.dart';
+import 'package:sv_timestamp/widgets/setting_item.dart';
+import 'package:vibration/vibration.dart';
 import 'package:sv_timestamp/models/captured_image.dart';
 import '../utils/metadata_service.dart';
 import '../utils/storage_service.dart';
@@ -13,11 +19,12 @@ class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
   @override
-  State<CameraScreen> createState() => _CameraScreenState();
+  State<CameraScreen> createState() => CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
+class CameraScreenState extends State<CameraScreen>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  SharedPreferences? _prefs;
   CameraController? _controller;
   late StorageService _storageService;
   late List<CameraDescription> _cameras;
@@ -31,10 +38,52 @@ class _CameraScreenState extends State<CameraScreen>
   FlashMode _currentFlash = FlashMode.off;
   int _currentCameraIndex = 0;
 
+  // New settings from SettingsScreen
+  bool _showGrid = false;
+  bool _soundOnCapture = true;
+  bool _vibrationOnCapture = true;
+  String _imageQuality = 'High';
+  String _watermarkPosition = 'Bottom Right';
+  double _watermarkOpacity = 0.8;
+  double _watermarkSize = 25.0;
+  bool _isFlashSupported = true;
+  bool _isZoomSupported = true;
+  double _minZoomLevel = 1.0;
+  double _maxZoomLevel = 10.0;
+  bool _isZooming = false;
+  OverlayEntry? _zoomOverlay;
+
+  double _baseZoomLevel = 1.0;
+  double _scaleZoom = 1.0;
+
+  // Animation controllers
+  late AnimationController _captureAnimationController;
+  late AnimationController _flashAnimationController;
+  late Animation<double> _captureAnimation;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Initialize animation controllers
+    _captureAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _flashAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _captureAnimation = Tween<double>(begin: 1.0, end: 0.7).animate(
+      CurvedAnimation(
+        parent: _captureAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
     _initApp();
   }
 
@@ -45,9 +94,38 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<void> _initApp() async {
+    await _loadSettings();
     await MetadataService.initEmojiCache();
+
     await _initLocation();
     await _initializeCamera();
+  }
+
+  // Add this method to load settings
+  Future<void> _loadSettings() async {
+    _prefs = await SharedPreferences.getInstance();
+
+    // Load settings from SharedPreferences
+    setState(() {
+      _soundOnCapture = _prefs?.getBool('sound_on_capture') ?? true;
+      _vibrationOnCapture = _prefs?.getBool('vibration_on_capture') ?? true;
+      _imageQuality = _prefs?.getString('image_quality') ?? 'High';
+      _watermarkPosition =
+          _prefs?.getString('watermark_position') ?? 'Bottom Right';
+      _watermarkOpacity = _prefs?.getDouble('watermark_opacity') ?? 0.8;
+      _watermarkSize = _prefs?.getDouble('watermark_size') ?? 25.0;
+
+      // Load app title and custom logo
+      final customTitle = _prefs?.getString('app_title');
+      if (customTitle != null && customTitle.isNotEmpty) {
+        MetadataService.setAppTitle(customTitle);
+      }
+
+      final customLogoPath = _prefs?.getString('custom_logo_path');
+      if (customLogoPath != null) {
+        MetadataService.setCustomLogoPath(customLogoPath);
+      }
+    });
   }
 
   Future<void> _initLocation() async {
@@ -90,15 +168,18 @@ class _CameraScreenState extends State<CameraScreen>
 
       _controller = CameraController(
         _cameras[_currentCameraIndex],
-        ResolutionPreset.high,
+        _getResolutionFromQuality(),
         enableAudio: false,
       );
 
       await _controller!.initialize();
 
-      // Set initial zoom
-      _currentZoom = await _controller!.getMaxZoomLevel() / 2;
-      await _controller!.setZoomLevel(_currentZoom);
+      if (_isZoomSupported) {
+        _minZoomLevel = await _controller!.getMinZoomLevel();
+        _maxZoomLevel = await _controller!.getMaxZoomLevel();
+        _currentZoom = _minZoomLevel;
+        await _controller!.setZoomLevel(_currentZoom);
+      }
 
       if (mounted) {
         setState(() {
@@ -108,8 +189,22 @@ class _CameraScreenState extends State<CameraScreen>
     } catch (e) {
       print('Camera initialization error: $e');
       if (mounted) {
-        // Show error state
+        _showErrorDialog('Camera Error', e.toString());
       }
+    }
+  }
+
+  ResolutionPreset _getResolutionFromQuality() {
+    switch (_imageQuality) {
+      case 'Low':
+        return ResolutionPreset.low;
+      case 'Medium':
+        return ResolutionPreset.medium;
+      case 'Ultra':
+        return ResolutionPreset.veryHigh;
+      case 'High':
+      default:
+        return ResolutionPreset.high;
     }
   }
 
@@ -126,11 +221,15 @@ class _CameraScreenState extends State<CameraScreen>
 
     _controller = CameraController(
       _cameras[_currentCameraIndex],
-      ResolutionPreset.high,
+      _getResolutionFromQuality(),
       enableAudio: false,
     );
 
     await _controller!.initialize();
+
+    // Update capabilities for new camera
+    // _isFlashSupported = _controller!.value.isFlashSupported;
+    // _isZoomSupported = _controller!.value.isZoomSupported;
 
     if (mounted) {
       setState(() {
@@ -165,9 +264,22 @@ class _CameraScreenState extends State<CameraScreen>
       return;
     }
 
+    // Start capture animation
+    _captureAnimationController.forward();
+
     setState(() {
       _isCapturing = true;
     });
+
+    // Play sound if enabled
+    if (_soundOnCapture) {
+      SystemSound.play(SystemSoundType.click);
+    }
+
+    // Vibrate if enabled
+    if (_vibrationOnCapture && await Vibration.hasVibrator() == true) {
+      Vibration.vibrate(duration: 50);
+    }
 
     try {
       // Capture image
@@ -229,9 +341,11 @@ class _CameraScreenState extends State<CameraScreen>
             address: _showLocation ? _currentAddress : null,
             additionalData: {
               'device': 'Mobile',
-              'app': 'SV TimeStamp',
+              'app': 'SV',
               'flash': _currentFlash.toString(),
               'camera': _cameras[_currentCameraIndex].lensDirection.toString(),
+              'quality': _imageQuality,
+              'zoom': _currentZoom.toStringAsFixed(1),
             },
           );
 
@@ -262,6 +376,7 @@ class _CameraScreenState extends State<CameraScreen>
           }
         } finally {
           if (mounted) {
+            _captureAnimationController.reverse();
             setState(() {
               _isCapturing = false;
             });
@@ -271,15 +386,11 @@ class _CameraScreenState extends State<CameraScreen>
     } catch (e) {
       print('Capture error: $e');
       if (mounted) {
+        _captureAnimationController.reverse();
         setState(() {
           _isCapturing = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Capture failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorDialog('Capture Failed', e.toString());
       }
     }
   }
@@ -287,9 +398,44 @@ class _CameraScreenState extends State<CameraScreen>
   Widget _buildCameraView() {
     return Stack(
       children: [
-        // Camera Preview
-        if (_controller != null && _controller!.value.isInitialized)
-          CameraPreview(_controller!),
+        Positioned.fill(
+          child: _controller != null && _controller!.value.isInitialized
+              ? GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+
+                  onScaleStart: (details) {
+                    _baseZoomLevel = _currentZoom;
+                  },
+
+                  onScaleUpdate: (details) async {
+                    if (!_isZoomSupported) return;
+
+                    _scaleZoom = (_baseZoomLevel * details.scale).clamp(
+                      _minZoomLevel,
+                      _maxZoomLevel,
+                    );
+
+                    if (_scaleZoom != _currentZoom) {
+                      _currentZoom = _scaleZoom;
+                      await _controller?.setZoomLevel(_currentZoom);
+
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    }
+                  },
+
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _controller!.value.previewSize!.height,
+                      height: _controller!.value.previewSize!.width,
+                      child: CameraPreview(_controller!),
+                    ),
+                  ),
+                )
+              : Container(color: Colors.black),
+        ),
 
         // Top Controls
         Positioned(
@@ -300,7 +446,22 @@ class _CameraScreenState extends State<CameraScreen>
         ),
 
         // Watermark Overlay
-        Positioned(bottom: 140, left: 20, child: _buildWatermark()),
+        //_buildPositionedWatermark(),
+
+        // Flash animation overlay
+        if (_flashAnimationController.isAnimating)
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _flashAnimationController,
+              builder: (context, child) {
+                return Container(
+                  color: Colors.white.withOpacity(
+                    _flashAnimationController.value * 0.7,
+                  ),
+                );
+              },
+            ),
+          ),
 
         // Bottom Controls
         Positioned(
@@ -309,6 +470,9 @@ class _CameraScreenState extends State<CameraScreen>
           right: 0,
           child: _buildCameraControls(),
         ),
+
+        // Zoom slider overlay
+        if (_isZooming) _buildZoomOverlay(),
       ],
     );
   }
@@ -333,20 +497,25 @@ class _CameraScreenState extends State<CameraScreen>
               ),
               onPressed: _toggleFlash,
             ),
-
             // Zoom Indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${_currentZoom.toStringAsFixed(1)}x',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+            GestureDetector(
+              onTap: null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${_currentZoom.toStringAsFixed(1)}x',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -359,6 +528,14 @@ class _CameraScreenState extends State<CameraScreen>
                 size: 28,
               ),
               onPressed: _cameras.length > 1 ? _switchCamera : null,
+              tooltip: 'Switch camera',
+            ),
+
+            // Settings button
+            IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white, size: 28),
+              onPressed: _navigateToSettings,
+              tooltip: 'Settings',
             ),
           ],
         ),
@@ -366,67 +543,60 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildWatermark() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // App Title
-          Text(
-            MetadataService.appTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              shadows: [Shadow(blurRadius: 10, color: Colors.black87)],
-            ),
+  Widget _buildZoomOverlay() {
+    // Hide slider if zoom not supported or no range
+    if (!_isZoomSupported || (_minZoomLevel == _maxZoomLevel))
+      return SizedBox.shrink();
+
+    // Use divisions only if range > 0.1
+    final double range = _maxZoomLevel - _minZoomLevel;
+    final int? divisions = range > 0.1 ? (range * 10).toInt() : null;
+
+    return Positioned(
+      right: 20,
+      top: MediaQuery.of(context).size.height / 2 - 100,
+      child: Container(
+        width: 60,
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: RotatedBox(
+          quarterTurns: 3,
+          child: Slider(
+            value: _currentZoom.clamp(_minZoomLevel, _maxZoomLevel),
+            min: _minZoomLevel,
+            max: _maxZoomLevel,
+            divisions: divisions,
+            activeColor: Colors.white,
+            inactiveColor: Colors.grey,
+            onChangeStart: (_) {
+              setState(() => _isZooming = true);
+            },
+            onChanged: (value) {
+              // Update slider thumb immediately
+              setState(() {
+                _currentZoom = value.clamp(_minZoomLevel, _maxZoomLevel);
+              });
+            },
+            onChangeEnd: (value) async {
+              final zoomValue = value.clamp(_minZoomLevel, _maxZoomLevel);
+              try {
+                // Only call async zoom after user finishes dragging
+                await _controller?.setZoomLevel(zoomValue);
+              } catch (e) {
+                print("Zoom error: $e");
+              }
+
+              // Hide overlay after a short delay
+              Future.delayed(
+                const Duration(milliseconds: 500),
+                () => setState(() => _isZooming = false),
+              );
+            },
           ),
-
-          const SizedBox(height: 8),
-
-          // Date and Time
-          Text(
-            _getFormattedDateTime(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              shadows: [Shadow(blurRadius: 5, color: Colors.black87)],
-            ),
-          ),
-
-          // Location (if enabled)
-          if (_showLocation && _isLocationReady) ...[
-            const SizedBox(height: 4),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: Text(
-                _currentAddress,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  shadows: [Shadow(blurRadius: 5, color: Colors.black87)],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (_currentCoords != null)
-              Text(
-                "Lat/Long: ${_currentCoords!['latitude']!.toStringAsFixed(4)}, "
-                "${_currentCoords!['longitude']!.toStringAsFixed(4)}",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  shadows: [Shadow(blurRadius: 3, color: Colors.black87)],
-                ),
-              ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -434,56 +604,333 @@ class _CameraScreenState extends State<CameraScreen>
   Widget _buildCameraControls() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Location Toggle
-            IconButton(
-              icon: Icon(
-                _showLocation ? Icons.location_on : Icons.location_off,
-                color: Colors.white,
-                size: 30,
-              ),
-              onPressed: () => setState(() => _showLocation = !_showLocation),
+            // Gallery button
+            GestureDetector(
+              onTap: _showGalleryPreview,
+              child: _storageService.capturedImages.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(_storageService.capturedImages.first.imagePath),
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // fallback to icon if image fails
+                          return const Icon(
+                            Icons.photo_library,
+                            color: Colors.white,
+                            size: 32,
+                          );
+                        },
+                      ),
+                    )
+                  : const Icon(
+                      Icons.photo_library,
+                      color: Colors.white,
+                      size: 32,
+                    ),
             ),
 
             // Capture Button
-            GestureDetector(
-              onTap: _isCapturing ? null : _takePicture,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                height: _isCapturing ? 60 : 80,
-                width: _isCapturing ? 60 : 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isCapturing ? Colors.grey : Colors.transparent,
-                  border: Border.all(
-                    color: _isCapturing ? Colors.grey : Colors.white,
-                    width: _isCapturing ? 3 : 4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: _isCapturing
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                        )
-                      : const Icon(Icons.camera, color: Colors.white, size: 40),
-                ),
-              ),
+            AnimatedBuilder(
+              animation: _captureAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _captureAnimation.value,
+                  child: _buildCaptureButton(),
+                );
+              },
+            ),
+
+            // Watermark customization
+            IconButton(
+              icon: const Icon(Icons.brush, color: Colors.white, size: 32),
+              onPressed: _showWatermarkCustomization,
+              tooltip: 'Customize watermark',
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildCaptureButton() {
+    return GestureDetector(
+      onTap: _isCapturing ? null : _takePicture,
+      child: Container(
+        height: 80,
+        width: 80,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.transparent,
+          border: Border.all(
+            color: _isCapturing ? Colors.grey : Colors.white,
+            width: _isCapturing ? 3 : 5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _isCapturing
+                  ? Colors.grey.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.3),
+              blurRadius: 15,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Center(
+          child: _isCapturing
+              ? CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                  strokeWidth: 3,
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSettings() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
+
+    // Reload settings when returning from settings screen
+    if (mounted) {
+      // Reinitialize camera with new quality settings if needed
+      if (_controller != null && _controller!.value.isInitialized) {
+        await _controller!.dispose();
+        await _initializeCamera();
+      }
+
+      // Reload settings directly from SharedPreferences
+      await _reloadSettingsFromPrefs();
+    }
+  }
+
+  Future<void> _reloadSettingsFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      _soundOnCapture = prefs.getBool('sound_on_capture') ?? true;
+      _vibrationOnCapture = prefs.getBool('vibration_on_capture') ?? true;
+      _imageQuality = prefs.getString('image_quality') ?? 'High';
+      _watermarkOpacity = prefs.getDouble('watermark_opacity') ?? 0.8;
+      _watermarkSize = prefs.getDouble('watermark_size') ?? 25.0;
+    });
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGalleryPreview() {
+    if (_storageService.capturedImages.isNotEmpty) {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (context) => _buildGalleryPreview(),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No photos yet. Capture some first!'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  Widget _buildGalleryPreview() {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[700],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent Photos',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Close',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Images grid
+              Expanded(
+                child: GridView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _storageService.capturedImages.length,
+                  itemBuilder: (context, index) {
+                    final image = _storageService.capturedImages[index];
+                    return GestureDetector(
+                      onTap: () => _showFullImage(image),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(image.imagePath),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey,
+                              child: const Icon(Icons.error),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFullImage(CapturedImage image) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenImageViewer(image: image),
+      ),
+    );
+  }
+
+  void _showWatermarkCustomization() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Customize Watermark',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.text_fields, color: Colors.white),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Text Size:',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${_watermarkSize.toInt()}px',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _watermarkSize,
+                min: 20.0,
+                max: 100.0,
+                // divisions: 6,
+                label: '${_watermarkSize.toInt()}px',
+                onChanged: (value) => setState(() => _watermarkSize = value),
+                onChangeEnd: (value) => _saveSetting('watermark_size', value),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveSetting<T>(String key, T value) async {
+    final _prefs = await SharedPreferences.getInstance();
+    if (value is bool) {
+      await _prefs.setBool(key, value);
+    } else if (value is String) {
+      await _prefs.setString(key, value);
+    } else if (value is double) {
+      await _prefs.setDouble(key, value);
+    } else if (value is int) {
+      await _prefs.setInt(key, value);
+    }
   }
 
   @override
@@ -511,7 +958,10 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _captureAnimationController.dispose();
+    _flashAnimationController.dispose();
     _controller?.dispose();
+    _zoomOverlay?.remove();
     super.dispose();
   }
 
@@ -524,7 +974,7 @@ class _CameraScreenState extends State<CameraScreen>
     if (state == AppLifecycleState.inactive) {
       _controller?.dispose();
     } else if (state == AppLifecycleState.resumed) {
-      if (_controller != null) {
+      if (_controller != null && !_controller!.value.isInitialized) {
         _initializeCamera();
       }
     }
