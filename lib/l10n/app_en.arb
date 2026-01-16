@@ -101,6 +101,38 @@
   "textStyle": "Text Style",
   "timestampLabel": "Timestamp",
   "topRightLogo": "Top Right Logo",
-  "visible": "Visible"
+  "visible": "Visible",
+
+  "captureSomeImagesFirst": "Capture some images first",
+  "copy": "Copy",
+  "delete": "Delete",
+  "deleteImageContent": "Are you sure you want to delete this image? This action cannot be undone.",
+  "deleteImageTitle": "Delete Image?",
+  "failedToCopy": "Failed to copy",
+  "failedToSave": "Failed to save",
+  "failedToShare": "Failed to share",
+  "galleryEmpty": "Gallery is empty",
+  "galleryTitle": "Gallery",
+  "imageDeletedSuccessfully": "Image deleted successfully",
+  "imageDetailsCopied": "Image details copied to clipboard",
+  "imageEditingComingSoon": "Image editing coming soon",
+  "imageFileNotFound": "Image file not found",
+  "imageSavedToGallery": "Image saved to gallery",
+  "imageShared": "Image shared successfully",
+  "imagesSharedSuccessfully": "Images shared successfully",
+  "noImagesToShare": "No images to share",
+  "noValidImageFilesFound": "No valid image files found",
+  "permissionDenied": "Permission denied",
+  "preview": "Preview",
+  "saveToGallery": "Save to Gallery",
+  "share": "Share",
+
+  "imagePathCopied": "Image path copied to clipboard",
+  "more": "More",
+  "save": "Save",
+  "shareImage": "Share Image",
+
+  "noPhotosAvailable": "No photos available",
+  "tapGalleryButton": "Tap the gallery button to view your photos"
 
 }
