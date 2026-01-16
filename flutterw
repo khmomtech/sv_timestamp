@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Lightweight project wrapper to use fvm if available, otherwise fallback to system flutter.
+# Usage: ./flutterw <flutter-args>
+
+set -e
+if command -v fvm >/dev/null 2>&1; then
+  exec fvm flutter "$@"
+else
+  echo "Warning: fvm not found. Using system 'flutter'. It's recommended to install fvm and run 'fvm use 3.38.7 --local'."
+  exec flutter "$@"
+fi

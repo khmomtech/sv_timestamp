@@ -10,28 +10,73 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   camera: ^0.10.0+1
   geolocator: ^9.0.2
   permission_handler: ^11.3.1
   path_provider: ^2.0.15
-  intl: ^0.18.0
+  intl: any
   provider: ^6.0.5
   cupertino_icons: ^1.0.8
   image: ^4.6.0
   geocoding: ^4.0.0
   image_picker: ^1.2.1
+  share_plus: ^7.0.2
+  shared_preferences: ^2.5.4
+  google_fonts: ^4.0.4
+  photo_view: ^0.14.0
+  fluttertoast: ^8.2.2  # For toast messages
+  gallery_saver_plus: ^3.2.9
+  hive_flutter: ^1.1.0
+  vibration: ^3.1.5
+  quick_actions: ^1.1.0
+  # image_gallery_saver: ^2.0.3
+
+  # gallery_saver: ^2.3.2
+
+# dependency_overrides:
+#   image_gallery_saver:
+#     git:
+#       url: https://github.com/hui-z/image_gallery_saver.git
+#       ref: master
+
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+    
+  flutter_launcher_icons: "^0.13.1"
 
   flutter_lints: ^5.0.0
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/app_icon.png"
+  # min_sdk_android: 21
+
 flutter:
   uses-material-design: true
+  generate: true
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Bold.ttf
+
+    # Recommended Khmer font for better Khmer rendering.
+    # To enable Khmer properly, add NotoSansKhmer font files under assets/fonts/
+    # and uncomment the block below.
+    # - family: NotoSansKhmer
+    #   fonts:
+    #     - asset: assets/fonts/NotoSansKhmer-Regular.ttf
+    #     - asset: assets/fonts/NotoSansKhmer-Bold.ttf
+    #       weight: 700
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/logo.png
+    - assets/
 
   

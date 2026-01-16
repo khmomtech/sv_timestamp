@@ -1,32 +1,43 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import '../models/captured_image.dart';
 import '../utils/storage_service.dart';
 import '../widgets/image_card.dart';
+import '../screens/full_screen_image_viewer.dart';
 
-class GalleryScreen extends StatelessWidget {
+class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key});
 
+  @override
+  State<GalleryScreen> createState() => _GalleryScreenState();
+}
+
+class _GalleryScreenState extends State<GalleryScreen> {
   @override
   Widget build(BuildContext context) {
     final storageService = Provider.of<StorageService>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Gallery',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        title: Text(
+          AppLocalizations.of(context)?.galleryTitle ?? 'Gallery',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list_rounded),
-            onPressed: () {
-              // Filter options
-            },
-          ),
+          if (storageService.capturedImages.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () {
+                _shareAllImages(context);
+              },
+              tooltip: AppLocalizations.of(context)?.share ?? 'Share Images',
+            ),
         ],
       ),
       body: storageService.capturedImages.isEmpty
@@ -43,7 +54,7 @@ class GalleryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Gallery is empty',
+                    AppLocalizations.of(context)?.galleryEmpty ?? 'Gallery is empty',
                     style: TextStyle(
                       fontSize: 18,
                       color: Theme.of(
@@ -53,7 +64,7 @@ class GalleryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Capture some images first',
+                    AppLocalizations.of(context)?.captureSomeImagesFirst ?? 'Capture some images first',
                     style: TextStyle(
                       fontSize: 14,
                       color: Theme.of(
@@ -78,7 +89,10 @@ class GalleryScreen extends StatelessWidget {
                 return ImageCard(
                   image: image,
                   onTap: () {
-                    _showImageDetails(context, image);
+                    _showImagePreview(context, image);
+                  },
+                  onLongPress: () {
+                    _showImageOptions(context, image);
                   },
                 );
               },
@@ -86,63 +100,54 @@ class GalleryScreen extends StatelessWidget {
     );
   }
 
-  void _showImageDetails(BuildContext context, CapturedImage image) {
-    showDialog(
+  void _showImagePreview(BuildContext context, CapturedImage image) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenImageViewer(image: image),
+      ),
+    );
+  }
+
+  void _showImageOptions(BuildContext context, CapturedImage image) {
+    showModalBottomSheet(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                image: DecorationImage(
-                  image: FileImage(File(image.imagePath)),
-                  fit: BoxFit.contain,
-                ),
-              ),
-              height: 400,
+            ListTile(
+              leading: const Icon(Icons.remove_red_eye),
+              title: Text(AppLocalizations.of(context)?.preview ?? 'Preview'),
+              onTap: () {
+                Navigator.pop(context);
+                _showImagePreview(context, image);
+              },
             ),
-
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Image Details',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildDetailRow(
-                    context,
-                    Icons.access_time,
-                    'Time:',
-                    image.timestamp.toLocal().toString(),
-                  ),
-                  if (image.location != null)
-                    _buildDetailRow(
-                      context,
-                      Icons.location_on,
-                      'Location:',
-                      '${image.location!['latitude']!.toStringAsFixed(4)}, '
-                          '${image.location!['longitude']!.toStringAsFixed(4)}',
-                    ),
-                  if (image.address != null)
-                    _buildDetailRow(
-                      context,
-                      Icons.place,
-                      'Address:',
-                      image.address!,
-                    ),
-                ],
-              ),
+            ListTile(
+              leading: const Icon(Icons.save_alt),
+              title: Text(AppLocalizations.of(context)?.saveToGallery ?? 'Save to Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _saveSingleImageToGallery(context, image);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: Text(AppLocalizations.of(context)?.share ?? 'Share'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareSingleImage(context, image);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteDialog(context, image);
+              },
             ),
           ],
         ),
@@ -150,43 +155,136 @@ class GalleryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(
+  Future<void> _shareAllImages(BuildContext context) async {
+    final storageService = Provider.of<StorageService>(context, listen: false);
+    final images = storageService.capturedImages;
+
+      if (images.isEmpty) {
+      _showSnackBar(context, AppLocalizations.of(context)?.noImagesToShare ?? 'No images to share', Colors.orange);
+      return;
+    }
+
+    try {
+      // Prepare files to share
+      final files = <XFile>[];
+      for (final image in images) {
+        final file = File(image.imagePath);
+        if (await file.exists()) {
+          files.add(XFile(file.path));
+        }
+      }
+
+      if (files.isEmpty) {
+        _showSnackBar(context, AppLocalizations.of(context)?.noValidImageFilesFound ?? 'No valid image files found', Colors.orange);
+        return;
+      }
+
+      // Use share_plus package for sharing
+      final result = await Share.shareXFiles(
+        files,
+        subject: 'Shared Images from Gallery',
+        text: 'Check out these images captured from the app!',
+      );
+
+      if (result.status == ShareResultStatus.success) {
+        _showSnackBar(context, AppLocalizations.of(context)?.imagesSharedSuccessfully ?? 'Images shared successfully', Colors.green);
+      }
+    } catch (e) {
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share images'}: $e', Colors.red);
+    }
+  }
+
+  Future<void> _shareSingleImage(
     BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
+    CapturedImage image,
+  ) async {
+    try {
+      final file = File(image.imagePath);
+      if (await file.exists()) {
+        final xFile = XFile(file.path);
+        final result = await Share.shareXFiles(
+          [xFile],
+          subject: 'Image from Gallery',
+          text: 'Image captured at: ${image.timestamp}',
+        );
+
+        if (result.status == ShareResultStatus.success) {
+          _showSnackBar(context, AppLocalizations.of(context)?.imageShared ?? 'Image shared successfully', Colors.green);
+        }
+      } else {
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
+      }
+    } catch (e) {
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share'}: $e', Colors.red);
+    }
+  }
+
+  Future<void> _saveSingleImageToGallery(
+    BuildContext context,
+    CapturedImage image,
+  ) async {
+    try {
+      final file = File(image.imagePath);
+      if (await file.exists()) {
+        // Save to gallery using image_gallery_saver
+        final result = null;
+        //await ImageGallerySaver.saveFile(file.path);
+
+        if (result['isSuccess'] == true) {
+          _showSnackBar(context, AppLocalizations.of(context)?.imageSavedToGallery ?? 'Image saved to gallery', Colors.green);
+        } else {
+          _showSnackBar(context, AppLocalizations.of(context)?.failedToSave ?? 'Failed to save image', Colors.orange);
+        }
+      } else {
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
+      }
+    } on PlatformException catch (e) {
+      _showSnackBar(context, '${AppLocalizations.of(context)?.permissionDenied ?? 'Permission denied'}: $e', Colors.red);
+    } catch (e) {
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToSave ?? 'Failed to save'}: $e', Colors.red);
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context, CapturedImage image) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)?.deleteImageTitle ?? 'Delete Image'),
+        content: Text(AppLocalizations.of(context)?.deleteImageContent ?? 'Are you sure you want to delete this image?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final storageService = Provider.of<StorageService>(
+                context,
+                listen: false,
+              );
+              await storageService.deleteImage(image as String);
+              Navigator.pop(context);
+              _showSnackBar(context, AppLocalizations.of(context)?.imageDeletedSuccessfully ?? 'Image deleted', Colors.red);
+            },
+            child: Text(AppLocalizations.of(context)?.delete ?? 'Delete', style: const TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSnackBar(
+    BuildContext context,
+    String message,
+    Color backgroundColor,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

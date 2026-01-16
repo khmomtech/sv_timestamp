@@ -5,6 +5,8 @@ class CapturedImage {
   final Map<String, double>? location; // latitude, longitude
   final String? address;
   final Map<String, dynamic> additionalData;
+  final bool hasWatermark;
+  final String? watermarkTemplate;
 
   CapturedImage({
     required this.id,
@@ -13,6 +15,8 @@ class CapturedImage {
     this.location,
     this.address,
     this.additionalData = const {},
+    this.hasWatermark = true,
+    this.watermarkTemplate,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class CapturedImage {
       'location': location,
       'address': address,
       'additionalData': additionalData,
+      'hasWatermark': hasWatermark,
+      'watermarkTemplate': watermarkTemplate,
     };
   }
 
@@ -36,6 +42,31 @@ class CapturedImage {
           : null,
       address: map['address'],
       additionalData: Map<String, dynamic>.from(map['additionalData']),
+      hasWatermark: map['hasWatermark'] ?? true,
+      watermarkTemplate: map['watermarkTemplate'],
+    );
+  }
+
+  // Copy with method for easier updates
+  CapturedImage copyWith({
+    String? id,
+    String? imagePath,
+    DateTime? timestamp,
+    Map<String, double>? location,
+    String? address,
+    Map<String, dynamic>? additionalData,
+    bool? hasWatermark,
+    String? watermarkTemplate,
+  }) {
+    return CapturedImage(
+      id: id ?? this.id,
+      imagePath: imagePath ?? this.imagePath,
+      timestamp: timestamp ?? this.timestamp,
+      location: location ?? this.location,
+      address: address ?? this.address,
+      additionalData: additionalData ?? this.additionalData,
+      hasWatermark: hasWatermark ?? this.hasWatermark,
+      watermarkTemplate: watermarkTemplate ?? this.watermarkTemplate,
     );
   }
 }

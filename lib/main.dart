@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
+
 import 'package:sv_timestamp/screens/camera_screen.dart';
-import 'package:sv_timestamp/screens/gallery_screen.dart';
 import 'package:sv_timestamp/theme/app_theme.dart';
+import 'package:sv_timestamp/utils/emoji_manager.dart';
+import 'package:sv_timestamp/utils/metadata_service.dart';
+import 'package:sv_timestamp/utils/setting_provider.dart';
 import 'package:sv_timestamp/utils/storage_service.dart';
+import 'package:sv_timestamp/utils/app_shortcuts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EmojiManager.init();
+  await Hive.initFlutter();
+  await MetadataService.initializeSettings();
+
   runApp(const MyApp());
 }
 
@@ -16,61 +27,48 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => StorageService())],
-      child: MaterialApp(
-        title: 'SV TimeStamp',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        home: const MainApp(),
-        debugShowCheckedModeBanner: false,
+      providers: [
+        ChangeNotifierProvider(create: (_) => StorageService()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+      ],
+        child: Consumer<SettingsProvider>(
+        builder: (context, settingsProvider, _) {
+          return MaterialApp(
+            title: 'SV TimeStamp',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            locale: settingsProvider.currentLocale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const CameraScreenWithShortcuts(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }
 }
 
-class MainApp extends StatefulWidget {
-  const MainApp({super.key});
+/// Wrapper widget to initialize shortcuts
+class CameraScreenWithShortcuts extends StatefulWidget {
+  const CameraScreenWithShortcuts({super.key});
 
   @override
-  State<MainApp> createState() => _MainAppState();
+  State<CameraScreenWithShortcuts> createState() =>
+      _CameraScreenWithShortcutsState();
 }
 
-class _MainAppState extends State<MainApp> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [const CameraScreen(), const GalleryScreen()];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
+class _CameraScreenWithShortcutsState extends State<CameraScreenWithShortcuts> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppShortcuts.initialize(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Theme.of(
-          context,
-        ).bottomNavigationBarTheme.backgroundColor,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Theme.of(
-          context,
-        ).colorScheme.onSurface.withOpacity(0.6),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_rounded),
-            label: 'Capture',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo_library_rounded),
-            label: 'Gallery',
-          ),
-        ],
-      ),
-    );
+    return const CameraScreen();
   }
 }

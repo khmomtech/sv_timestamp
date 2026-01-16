@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
+
 import '../models/captured_image.dart';
 
 class MetadataOverlay extends StatelessWidget {
@@ -28,20 +31,26 @@ class MetadataOverlay extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.access_time, size: 16, color: Colors.white70),
-              const SizedBox(width: 8),
-              Text(
-                _formatDateTime(image.timestamp),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+          Builder(builder: (context) {
+            final loc = AppLocalizations.of(context);
+            final locale = Localizations.localeOf(context).toString();
+            final dateText = DateFormat.yMd(locale).add_Hm().format(image.timestamp);
+
+            return Row(
+              children: [
+                const Icon(Icons.access_time, size: 16, color: Colors.white70),
+                const SizedBox(width: 8),
+                Text(
+                  '${loc?.datetimeLabel ?? ''} $dateText',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
           if (image.location != null) ...[
             const SizedBox(height: 8),
             Row(
@@ -49,11 +58,14 @@ class MetadataOverlay extends StatelessWidget {
                 const Icon(Icons.location_on, size: 16, color: Colors.white70),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    '${image.location!['latitude']!.toStringAsFixed(4)}, '
-                    '${image.location!['longitude']!.toStringAsFixed(4)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
+                  child: Builder(builder: (context) {
+                    final loc = AppLocalizations.of(context);
+                    return Text(
+                      '${loc?.locationLabel ?? ''} ${image.location!['latitude']!.toStringAsFixed(4)}, '
+                      '${image.location!['longitude']!.toStringAsFixed(4)}',
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -66,10 +78,13 @@ class MetadataOverlay extends StatelessWidget {
                 const Icon(Icons.place, size: 16, color: Colors.white70),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    image.address!,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
+                  child: Builder(builder: (context) {
+                    final loc = AppLocalizations.of(context);
+                    return Text(
+                      '${loc?.addressLabel ?? ''} ${image.address!}',
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    );
+                  }),
                 ),
               ],
             ),
