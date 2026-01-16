@@ -75,9 +75,29 @@
   "locationServiceDisabled": "សេវាកម្មទីតាំងត្រូវបានបិទ",
   "datetimeLabel": "កាលបរិច្ឆេទ:",
   "addressLabel": "អាសយដ្ឋាន:",
-  "locationLabel": "ទីតាំង:"
+  "locationLabel": "ទីតាំង:",
 
-
-
+  "add": "បន្ថែម",
+  "addCustomText": "បន្ថែមអត្ថបទផ្ទាល់ខ្លួន",
+  "addElements": "បន្ថែមធាតុ",
+  "addressLabelShort": "អាសយដ្ឋាន",
+  "backgroundColor": "ពណ៌ផ្ទៃខាងក្រោយ",
+  "borderLabel": "ស៊ុម",
+  "classicBottom": "បែបបទបុរាណខាងក្រោម",
+  "customTextLabel": "អត្ថបទផ្ទាល់ខ្លួន",
+  "deviceInfoLabel": "ព័ត៌មានឧបករណ៍",
+  "enterCustomTextHint": "បញ្ចូលអត្ថបទផ្ទាល់ខ្លួនរបស់អ្នកនៅទីនេះ",
+  "fullOverlay": "គម្របពេញលេញ",
+  "gpsCoordinatesLabel": "កូអរដោនេ GPS",
+  "locationLabelShort": "ទីតាំង",
+  "logo": "ឡូហ្គោ",
+  "qrCodeLabel": "លេខកូដ QR",
+  "quickTemplates": "ពុម្ពរហ័សលឿន",
+  "saveTemplate": "រក្សាទុកពុម្ព",
+  "textPresets": "អត្ថបទកំណត់ជាមុន",
+  "textStyle": "រចនាប័ទ្មអត្ថបទ",
+  "timestampLabel": "ពេលវេលា",
+  "topRightLogo": "ឡូហ្គោខាងលើស្តាំ",
+  "visible": "អាចមើលឃើញ"
 
 }

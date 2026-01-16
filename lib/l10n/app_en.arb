@@ -78,8 +78,29 @@
   "locationServiceDisabled": "Location service is disabled",
   "datetimeLabel": "Datetime:",
   "addressLabel": "Address:",
-  "locationLabel": "Location:"
+  "locationLabel": "Location:",
 
-
+  "add": "Add",
+  "addCustomText": "Add Custom Text",
+  "addElements": "Add Elements",
+  "addressLabelShort": "Address",
+  "backgroundColor": "Background Color",
+  "borderLabel": "Border",
+  "classicBottom": "Classic Bottom",
+  "customTextLabel": "Custom Text",
+  "deviceInfoLabel": "Device Info",
+  "enterCustomTextHint": "Enter your custom text here",
+  "fullOverlay": "Full Overlay",
+  "gpsCoordinatesLabel": "GPS Coordinates",
+  "locationLabelShort": "Location",
+  "logo": "Logo",
+  "qrCodeLabel": "QR Code",
+  "quickTemplates": "Quick Templates",
+  "saveTemplate": "Save Template",
+  "textPresets": "Text Presets",
+  "textStyle": "Text Style",
+  "timestampLabel": "Timestamp",
+  "topRightLogo": "Top Right Logo",
+  "visible": "Visible"
 
 }
