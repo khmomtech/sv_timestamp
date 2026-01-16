@@ -31,20 +31,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => StorageService()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
-      child: Consumer<SettingsProvider>(
+        child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, _) {
           return MaterialApp(
             title: 'SV TimeStamp',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             locale: settingsProvider.currentLocale,
-            supportedLocales: const [Locale('en', 'US'), Locale('km', 'KH')],
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             home: const CameraScreenWithShortcuts(),
             debugShowCheckedModeBanner: false,
           );

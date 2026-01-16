@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/watermark_template.dart';
 
 class ElementPalette extends StatefulWidget {
@@ -16,53 +17,56 @@ class ElementPalette extends StatefulWidget {
 }
 
 class _ElementPaletteState extends State<ElementPalette> {
-  final Map<WatermarkElementType, Map<String, dynamic>> _elementTypes = {
-    WatermarkElementType.logo: {
-      'name': 'Logo',
-      'icon': Icons.image,
-      'color': Colors.blue,
-    },
-    WatermarkElementType.timestamp: {
-      'name': 'Timestamp',
-      'icon': Icons.access_time,
-      'color': Colors.green,
-    },
-    WatermarkElementType.location: {
-      'name': 'Location',
-      'icon': Icons.location_on,
-      'color': Colors.red,
-    },
-    WatermarkElementType.address: {
-      'name': 'Address',
-      'icon': Icons.home,
-      'color': Colors.orange,
-    },
-    WatermarkElementType.gpsCoordinates: {
-      'name': 'GPS Coordinates',
-      'icon': Icons.gps_fixed,
-      'color': Colors.purple,
-    },
-    WatermarkElementType.deviceInfo: {
-      'name': 'Device Info',
-      'icon': Icons.smartphone,
-      'color': Colors.teal,
-    },
-    WatermarkElementType.customText: {
-      'name': 'Custom Text',
-      'icon': Icons.text_fields,
-      'color': Colors.indigo,
-    },
-    WatermarkElementType.border: {
-      'name': 'Border',
-      'icon': Icons.border_all,
-      'color': Colors.brown,
-    },
-    WatermarkElementType.qrCode: {
-      'name': 'QR Code',
-      'icon': Icons.qr_code,
-      'color': Colors.cyan,
-    },
-  };
+  Map<WatermarkElementType, Map<String, dynamic>> _elementTypes(BuildContext context) {
+    final local = AppLocalizations.of(context)!;
+    return {
+      WatermarkElementType.logo: {
+        'name': local.logo,
+        'icon': Icons.image,
+        'color': Colors.blue,
+      },
+      WatermarkElementType.timestamp: {
+        'name': local.timestampLabel,
+        'icon': Icons.access_time,
+        'color': Colors.green,
+      },
+      WatermarkElementType.location: {
+        'name': local.locationLabelShort,
+        'icon': Icons.location_on,
+        'color': Colors.red,
+      },
+      WatermarkElementType.address: {
+        'name': local.addressLabelShort,
+        'icon': Icons.home,
+        'color': Colors.orange,
+      },
+      WatermarkElementType.gpsCoordinates: {
+        'name': local.gpsCoordinatesLabel,
+        'icon': Icons.gps_fixed,
+        'color': Colors.purple,
+      },
+      WatermarkElementType.deviceInfo: {
+        'name': local.deviceInfoLabel,
+        'icon': Icons.smartphone,
+        'color': Colors.teal,
+      },
+      WatermarkElementType.customText: {
+        'name': local.customTextLabel,
+        'icon': Icons.text_fields,
+        'color': Colors.indigo,
+      },
+      WatermarkElementType.border: {
+        'name': local.borderLabel,
+        'icon': Icons.border_all,
+        'color': Colors.brown,
+      },
+      WatermarkElementType.qrCode: {
+        'name': local.qrCodeLabel,
+        'icon': Icons.qr_code,
+        'color': Colors.cyan,
+      },
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +75,7 @@ class _ElementPaletteState extends State<ElementPalette> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Add Elements',
+            AppLocalizations.of(context)!.addElements,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -84,7 +88,7 @@ class _ElementPaletteState extends State<ElementPalette> {
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _elementTypes.entries.map((entry) {
+            children: _elementTypes(context).entries.map((entry) {
               return _ElementTypeButton(
                 type: entry.key,
                 name: entry.value['name'],
@@ -113,24 +117,24 @@ class _ElementPaletteState extends State<ElementPalette> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Quick Templates',
+                AppLocalizations.of(context)!.quickTemplates,
                 style: Theme.of(
                   context,
                 ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               _buildPresetTemplate(
-                'Classic Bottom',
+                AppLocalizations.of(context)!.classicBottom,
                 Icons.format_align_center_outlined,
                 () => _addPresetTemplate('classic_bottom'),
               ),
               _buildPresetTemplate(
-                'Top Right Logo',
+                AppLocalizations.of(context)!.topRightLogo,
                 Icons.crop_square,
                 () => _addPresetTemplate('top_right_logo'),
               ),
               _buildPresetTemplate(
-                'Full Overlay',
+                AppLocalizations.of(context)!.fullOverlay,
                 Icons.grid_on,
                 () => _addPresetTemplate('full_overlay'),
               ),
@@ -150,7 +154,7 @@ class _ElementPaletteState extends State<ElementPalette> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Text Presets',
+                    AppLocalizations.of(context)!.textPresets,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -246,20 +250,20 @@ class _ElementPaletteState extends State<ElementPalette> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Custom Text'),
-        content: TextField(
+        builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.addCustomText),
+          content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter custom text...',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.enterCustomTextHint,
+            border: const OutlineInputBorder(),
           ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -271,7 +275,7 @@ class _ElementPaletteState extends State<ElementPalette> {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Add'),
+            child: Text(AppLocalizations.of(context)!.add),
           ),
         ],
       ),

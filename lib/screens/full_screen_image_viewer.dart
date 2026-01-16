@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
@@ -74,13 +75,13 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         );
 
         if (result.status == ShareResultStatus.success) {
-          _showSnackBar(context, 'Image shared successfully', Colors.green);
+          _showSnackBar(context, AppLocalizations.of(context)?.imageShared ?? 'Image shared successfully', Colors.green);
         }
       } else {
-        _showSnackBar(context, 'Image file not found', Colors.orange);
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
       }
     } catch (e) {
-      _showSnackBar(context, 'Failed to share: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share'}: $e', Colors.red);
     }
   }
 
@@ -93,27 +94,27 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         if (result == true) {
           _showSnackBar(
             context,
-            'Image saved to gallery successfully',
+            AppLocalizations.of(context)?.imageSavedToGallery ?? 'Image saved to gallery successfully',
             Colors.green,
           );
         } else {
           _showSnackBar(
             context,
-            'Failed to save image to gallery',
+            AppLocalizations.of(context)?.failedToSave ?? 'Failed to save image to gallery',
             Colors.orange,
           );
         }
       } else {
-        _showSnackBar(context, 'Image file not found', Colors.orange);
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
       }
     } on PlatformException catch (e) {
       _showSnackBar(
         context,
-        'Permission denied: $e\nPlease grant storage permission',
+        '${AppLocalizations.of(context)?.permissionDenied ?? 'Permission denied'}: $e\nPlease grant storage permission',
         Colors.red,
       );
     } catch (e) {
-      _showSnackBar(context, 'Failed to save: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToSave ?? 'Failed to save'}: $e', Colors.red);
     }
   }
 
@@ -127,23 +128,23 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Edit Image'),
+                title: Text(AppLocalizations.of(context)?.imageEditingComingSoon ?? 'Edit Image'),
               onTap: () {
                 Navigator.pop(context);
                 _editImage(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy Details'),
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: Text(AppLocalizations.of(context)?.copy ?? 'Copy Details'),
               onTap: () {
                 Navigator.pop(context);
                 _copyImageDetails(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Delete Image'),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: Text(AppLocalizations.of(context)?.delete ?? 'Delete Image'),
               onTap: () {
                 Navigator.pop(context);
                 _deleteImage(context);
@@ -157,7 +158,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
 
   void _editImage(BuildContext context) {
     // Implement image editing functionality
-    _showSnackBar(context, 'Image editing coming soon', Colors.blue);
+    _showSnackBar(context, AppLocalizations.of(context)?.imageEditingComingSoon ?? 'Image editing coming soon', Colors.blue);
   }
 
   void _copyImageDetails(BuildContext context) async {
@@ -172,9 +173,9 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
 
       await Clipboard.setData(ClipboardData(text: details));
 
-      _showSnackBar(context, 'Image details copied to clipboard', Colors.green);
+      _showSnackBar(context, AppLocalizations.of(context)?.imageDetailsCopied ?? 'Image details copied to clipboard', Colors.green);
     } catch (e) {
-      _showSnackBar(context, 'Failed to copy: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToCopy ?? 'Failed to copy'}: $e', Colors.red);
     }
   }
 
@@ -182,12 +183,12 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Image'),
-        content: const Text('Are you sure you want to delete this image?'),
+        title: Text(AppLocalizations.of(context)?.deleteImageTitle ?? 'Delete Image'),
+        content: Text(AppLocalizations.of(context)?.deleteImageContent ?? 'Are you sure you want to delete this image?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -200,9 +201,9 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               Navigator.pop(context);
               Navigator.pop(context); // Go back to gallery
 
-              _showSnackBar(context, 'Image deleted successfully', Colors.red);
+              _showSnackBar(context, AppLocalizations.of(context)?.imageDeletedSuccessfully ?? 'Image deleted successfully', Colors.red);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)?.delete ?? 'Delete', style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

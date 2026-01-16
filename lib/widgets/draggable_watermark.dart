@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 import '../models/watermark_template.dart';
+import '../l10n/app_localizations.dart';
 
 class DraggableWatermark extends StatefulWidget {
   final WatermarkElement element;
@@ -261,22 +262,22 @@ class _DraggableWatermarkState extends State<DraggableWatermark> {
         return widget.element.text
                 ?.replaceAll('{time}', '14:30')
                 ?.replaceAll('{date}', '2024-01-15') ??
-            'Timestamp';
+            AppLocalizations.of(context)!.timestampLabel;
       case WatermarkElementType.location:
         return widget.element.text?.replaceAll('{location}', 'New York, USA') ??
-            '📍 Location';
+            AppLocalizations.of(context)!.locationLabelShort;
       case WatermarkElementType.address:
         return widget.element.text?.replaceAll('{address}', '123 Main St') ??
-            '🏠 Address';
+            AppLocalizations.of(context)!.addressLabelShort;
       case WatermarkElementType.gpsCoordinates:
         return widget.element.text
                 ?.replaceAll('{lat}', '40.7128')
                 ?.replaceAll('{lng}', '-74.0060') ??
-            'GPS: 40.7128, -74.0060';
+            AppLocalizations.of(context)!.gpsCoordinatesLabel;
       case WatermarkElementType.deviceInfo:
-        return widget.element.text ?? '📱 Device Info';
+        return widget.element.text ?? AppLocalizations.of(context)!.deviceInfoLabel;
       case WatermarkElementType.customText:
-        return widget.element.text ?? 'Custom Text';
+        return widget.element.text ?? AppLocalizations.of(context)!.customTextLabel;
       default:
         return '';
     }

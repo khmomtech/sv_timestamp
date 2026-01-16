@@ -219,4 +219,157 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get locationLabel => 'ទីតាំង:';
+
+  @override
+  String get galleryTitle => 'Gallery';
+
+  @override
+  String get galleryEmpty => 'Gallery is empty';
+
+  @override
+  String get captureSomeImagesFirst => 'Capture some images first';
+
+  @override
+  String get noImagesToShare => 'No images to share';
+
+  @override
+  String get noValidImageFilesFound => 'No valid image files found';
+
+  @override
+  String get imagesSharedSuccessfully => 'Images shared successfully';
+
+  @override
+  String get imageFileNotFound => 'Image file not found';
+
+  @override
+  String get imageShared => 'Image shared successfully';
+
+  @override
+  String get failedToShare => 'Failed to share';
+
+  @override
+  String get imageSavedToGallery => 'Image saved to gallery';
+
+  @override
+  String get failedToSave => 'Failed to save';
+
+  @override
+  String get permissionDenied => 'Permission denied';
+
+  @override
+  String get shareImage => 'Share Image';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get more => 'More';
+
+  @override
+  String get imagePathCopied => 'Image path copied to clipboard';
+
+  @override
+  String get imageEditingComingSoon => 'Image editing coming soon';
+
+  @override
+  String get imageDetailsCopied => 'Image details copied to clipboard';
+
+  @override
+  String get failedToCopy => 'Failed to copy';
+
+  @override
+  String get deleteImageTitle => 'Delete Image';
+
+  @override
+  String get deleteImageContent => 'Are you sure you want to delete this image?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get imageDeletedSuccessfully => 'Image deleted successfully';
+
+  @override
+  String get tapGalleryButton => 'Tap the gallery button in the bottom left corner';
+
+  @override
+  String get noPhotosAvailable => 'No photos available';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get saveToGallery => 'Save to Gallery';
+
+  @override
+  String get logo => 'ឡូហ្គូ';
+
+  @override
+  String get timestampLabel => 'សូមពេល';
+
+  @override
+  String get locationLabelShort => 'ទីតាំង';
+
+  @override
+  String get addressLabelShort => 'អាសយដ្ឋាន';
+
+  @override
+  String get customTextLabel => 'អត្ថបទផ្ទាល់ខ្លួន';
+
+  @override
+  String get gpsCoordinatesLabel => 'សមិបត្តិ GPS';
+
+  @override
+  String get deviceInfoLabel => 'ព័ត៌នាឧបករណ៍';
+
+  @override
+  String get borderLabel => 'ស្រទាប់';
+
+  @override
+  String get qrCodeLabel => 'QR Code';
+
+  @override
+  String get addElements => 'បន្ថែមធាតុ';
+
+  @override
+  String get quickTemplates => 'ទម្រង់រហ័ស';
+
+  @override
+  String get textPresets => 'ការកំណត់អក្សរ';
+
+  @override
+  String get classicBottom => 'តារាងបំផុត';
+
+  @override
+  String get topRightLogo => 'ឡូហ្គូខាងលើស្តាំ';
+
+  @override
+  String get fullOverlay => 'គម្របពេញទូទាំង';
+
+  @override
+  String get enterCustomTextHint => 'បញ្ចូលអត្ថបទផ្ទាល់ខ្លួន...';
+
+  @override
+  String get visible => 'អាចមើលឃើញ';
+
+  @override
+  String get backgroundColor => 'ពណ៌ផ្ទៃខាងក្រោយ';
+
+  @override
+  String get textStyle => 'រចនាអក្សរ';
+
+  @override
+  String get addCustomText => 'បន្ថែមអត្ថបទផ្ទាល់ខ្លួន';
+
+  @override
+  String get add => 'បន្ថែម';
+
+  @override
+  String get saveTemplate => 'រក្សាទុកទម្រង់';
 }

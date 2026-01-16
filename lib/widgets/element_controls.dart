@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/watermark_template.dart';
 
 class ElementControls extends StatefulWidget {
@@ -64,7 +65,7 @@ class _ElementControlsState extends State<ElementControls> {
 
           // Visibility toggle
           SwitchListTile(
-            title: const Text('Visible'),
+            title: Text(AppLocalizations.of(context)!.visible),
             value: _currentElement.isVisible,
             onChanged: (value) => _updateElement(isVisible: value),
           ),
@@ -136,9 +137,9 @@ class _ElementControlsState extends State<ElementControls> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: TextEditingController(text: _currentElement.text),
-        decoration: const InputDecoration(
-          labelText: 'Text',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context)!.addCustomText,
+          border: const OutlineInputBorder(),
           hintText: 'Enter text...',
         ),
         onChanged: (value) => _updateElement(text: value),
@@ -149,10 +150,10 @@ class _ElementControlsState extends State<ElementControls> {
   Widget _buildColorPicker() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Background Color'),
+          Text(AppLocalizations.of(context)!.backgroundColor),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -213,16 +214,16 @@ class _ElementControlsState extends State<ElementControls> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text('Text Style'),
+        Text(AppLocalizations.of(context)!.textStyle),
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: DropdownButtonFormField<double>(
                 value: _currentElement.style.fontSize,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Font Size',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items: [10, 12, 14, 16, 18, 20, 24, 28, 32]
                     .map(
@@ -241,9 +242,9 @@ class _ElementControlsState extends State<ElementControls> {
             Expanded(
               child: DropdownButtonFormField<FontWeight>(
                 value: _currentElement.style.fontWeight,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Weight',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items: FontWeight.values
                     .where((w) => w.index % 100 == 0)
@@ -267,9 +268,9 @@ class _ElementControlsState extends State<ElementControls> {
             Expanded(
               child: DropdownButtonFormField<Color>(
                 value: _currentElement.style.color,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Color',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items:
                     [
@@ -311,23 +312,23 @@ class _ElementControlsState extends State<ElementControls> {
   String _getElementTypeName(WatermarkElementType type) {
     switch (type) {
       case WatermarkElementType.logo:
-        return 'Logo';
+        return AppLocalizations.of(context)!.logo;
       case WatermarkElementType.timestamp:
-        return 'Timestamp';
+        return AppLocalizations.of(context)!.timestampLabel;
       case WatermarkElementType.location:
-        return 'Location';
+        return AppLocalizations.of(context)!.locationLabelShort;
       case WatermarkElementType.address:
-        return 'Address';
+        return AppLocalizations.of(context)!.addressLabelShort;
       case WatermarkElementType.customText:
-        return 'Custom Text';
+        return AppLocalizations.of(context)!.customTextLabel;
       case WatermarkElementType.gpsCoordinates:
-        return 'GPS Coordinates';
+        return AppLocalizations.of(context)!.gpsCoordinatesLabel;
       case WatermarkElementType.deviceInfo:
-        return 'Device Info';
+        return AppLocalizations.of(context)!.deviceInfoLabel;
       case WatermarkElementType.border:
-        return 'Border';
+        return AppLocalizations.of(context)!.borderLabel;
       case WatermarkElementType.qrCode:
-        return 'QR Code';
+        return AppLocalizations.of(context)!.qrCodeLabel;
     }
   }
 

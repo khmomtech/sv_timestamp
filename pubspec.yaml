@@ -66,6 +66,15 @@ flutter:
       fonts:
         - asset: assets/fonts/Roboto-Bold.ttf
 
+    # Recommended Khmer font for better Khmer rendering.
+    # To enable Khmer properly, add NotoSansKhmer font files under assets/fonts/
+    # and uncomment the block below.
+    # - family: NotoSansKhmer
+    #   fonts:
+    #     - asset: assets/fonts/NotoSansKhmer-Regular.ttf
+    #     - asset: assets/fonts/NotoSansKhmer-Bold.ttf
+    #       weight: 700
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/

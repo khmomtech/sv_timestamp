@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:ui' as ui;
 import '../models/watermark_template.dart';
 
@@ -110,24 +111,24 @@ class _TemplateEditorState extends State<TemplateEditor> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildAddButton('Logo', Icons.image, () => _addLogoElement()),
+                  _buildAddButton(AppLocalizations.of(context)!.logo, Icons.image, () => _addLogoElement()),
                   _buildAddButton(
-                    'Text',
+                    AppLocalizations.of(context)!.customTextLabel,
                     Icons.text_fields,
                     () => _addTextElement(),
                   ),
                   _buildAddButton(
-                    'Timestamp',
+                    AppLocalizations.of(context)!.timestampLabel,
                     Icons.access_time,
                     () => _addTimestampElement(),
                   ),
                   _buildAddButton(
-                    'Location',
+                    AppLocalizations.of(context)!.locationLabelShort,
                     Icons.location_on,
                     () => _addLocationElement(),
                   ),
                   _buildAddButton(
-                    'GPS',
+                    AppLocalizations.of(context)!.gpsCoordinatesLabel,
                     Icons.gps_fixed,
                     () => _addGpsElement(),
                   ),
@@ -146,7 +147,7 @@ class _TemplateEditorState extends State<TemplateEditor> {
                   TextButton.icon(
                     onPressed: widget.onCancel,
                     icon: const Icon(Icons.close),
-                    label: const Text('Cancel'),
+                    label: Text(AppLocalizations.of(context)!.cancel),
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -154,7 +155,7 @@ class _TemplateEditorState extends State<TemplateEditor> {
                       widget.onSave();
                     },
                     icon: const Icon(Icons.save),
-                    label: const Text('Save Template'),
+                    label: Text(AppLocalizations.of(context)!.saveTemplate),
                   ),
                 ],
               ),

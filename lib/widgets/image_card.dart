@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import '../models/captured_image.dart';
 import '../services/metadata_overlay.dart';
 
@@ -50,8 +51,8 @@ class _ImageCardState extends State<ImageCard> {
       final file = File(widget.image.imagePath);
       if (!await file.exists()) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Image file not found'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found'),
             backgroundColor: Colors.red,
           ),
         );
@@ -71,7 +72,7 @@ class _ImageCardState extends State<ImageCard> {
       if (result.status == ShareResultStatus.success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Image shared successfully!'),
+            content: Text(AppLocalizations.of(context)?.imageShared ?? 'Image shared successfully!'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
@@ -80,7 +81,7 @@ class _ImageCardState extends State<ImageCard> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error sharing image: $e'),
+          content: Text('${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share'}: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,7 +105,7 @@ class _ImageCardState extends State<ImageCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Share Image',
+              AppLocalizations.of(context)?.shareImage ?? 'Share Image',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -115,26 +116,26 @@ class _ImageCardState extends State<ImageCard> {
               children: [
                 _ShareOptionButton(
                   icon: Icons.share,
-                  label: 'Share',
+                  label: AppLocalizations.of(context)?.share ?? 'Share',
                   color: Colors.blue,
                   onTap: _shareImage,
                 ),
                 _ShareOptionButton(
                   icon: Icons.copy,
-                  label: 'Copy',
+                  label: AppLocalizations.of(context)?.copy ?? 'Copy',
                   color: Colors.orange,
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Image path copied to clipboard'),
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)?.imagePathCopied ?? 'Image path copied to clipboard'),
                       ),
                     );
                   },
                 ),
                 _ShareOptionButton(
                   icon: Icons.save_alt,
-                  label: 'Save',
+                  label: AppLocalizations.of(context)?.save ?? 'Save',
                   color: Colors.green,
                   onTap: () {
                     Navigator.pop(context);
@@ -143,7 +144,7 @@ class _ImageCardState extends State<ImageCard> {
                 ),
                 _ShareOptionButton(
                   icon: Icons.more_horiz,
-                  label: 'More',
+                  label: AppLocalizations.of(context)?.more ?? 'More',
                   color: Colors.purple,
                   onTap: () {
                     Navigator.pop(context);
@@ -155,7 +156,7 @@ class _ImageCardState extends State<ImageCard> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import 'package:sv_timestamp/screens/SettingsScreen.dart';
 import 'package:sv_timestamp/screens/camera_screen.dart';
 import 'package:sv_timestamp/screens/full_screen_image_viewer.dart';
@@ -27,8 +28,30 @@ class AppShortcuts {
       }
     });
 
-    // Set up the shortcuts
-    _setupShortcuts();
+    // Set up the shortcuts with localized titles
+    final loc = AppLocalizations.of(context);
+    quickActions.setShortcutItems(<ShortcutItem>[
+      ShortcutItem(
+        type: _cameraAction,
+        localizedTitle: loc?.appTitle ?? 'Open Camera',
+        icon: 'ic_camera',
+      ),
+      ShortcutItem(
+        type: _galleryAction,
+        localizedTitle: loc?.galleryTitle ?? 'View Gallery',
+        icon: 'ic_gallery',
+      ),
+      ShortcutItem(
+        type: _settingsAction,
+        localizedTitle: loc?.settings ?? 'Settings',
+        icon: 'ic_settings',
+      ),
+      ShortcutItem(
+        type: _lastPhotoAction,
+        localizedTitle: loc?.galleryTitle ?? 'Last Photo',
+        icon: 'ic_last_photo',
+      ),
+    ]);
   }
 
   static void updateContext(BuildContext context) {
@@ -104,14 +127,12 @@ class AppShortcuts {
             MaterialPageRoute(builder: (context) => const CameraScreen()),
             (route) => route.isFirst,
           )
-          .then((_) {
+            .then((_) {
             // Show hint about gallery button
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Tap the gallery button in the bottom left corner',
-                ),
-                duration: Duration(seconds: 3),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)?.tapGalleryButton ?? 'Tap the gallery button in the bottom left corner'),
+                duration: const Duration(seconds: 3),
               ),
             );
           });
@@ -121,9 +142,9 @@ class AppShortcuts {
         (route) => route.isFirst,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No photos available'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)?.noPhotosAvailable ?? 'No photos available'),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -163,9 +184,9 @@ class AppShortcuts {
         (route) => route.isFirst,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No photos available'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)?.noPhotosAvailable ?? 'No photos available'),
+          duration: const Duration(seconds: 2),
         ),
       );
     }

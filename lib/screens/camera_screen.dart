@@ -138,30 +138,33 @@ class CameraScreenState extends State<CameraScreen>
           loc['longitude']!,
         );
         if (mounted) {
+          final locStr = AppLocalizations.of(context)?.addressNotFound ?? 'Unknown Location';
           setState(() {
             _currentCoords = loc;
-            _currentAddress = addr ?? "Unknown Location";
+            _currentAddress = addr ?? locStr;
             _isLocationReady = true;
           });
         }
-      } else if (mounted) {
-        setState(() {
-          _currentAddress = "Location not available";
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)?.imageCaptured ?? 'Image captured successfully!',
+                ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+          }
+          _currentAddress = locStr;
           _isLocationReady = true;
         });
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _currentAddress = "Location error";
-          _isLocationReady = true;
-        });
-      }
-    }
-  }
-
-  Future<void> _initializeCamera() async {
-    try {
+              SnackBar(
+                content: Text('${AppLocalizations.of(context)?.failedToSave ?? 'Error'}: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
         throw Exception('No cameras found');
@@ -350,12 +353,14 @@ class CameraScreenState extends State<CameraScreen>
           await File(tempPath).delete();
 
           if (mounted) {
-            // Show success
+            // Show success (localized)
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Image captured successfully!'),
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)?.imageCaptured ?? 'Image captured successfully!',
+                ),
                 backgroundColor: Colors.green,
-                duration: Duration(seconds: 1),
+                duration: const Duration(seconds: 1),
               ),
             );
           }
@@ -364,7 +369,7 @@ class CameraScreenState extends State<CameraScreen>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${e.toString()}'),
+                content: Text('${AppLocalizations.of(context)?.failedToSave ?? 'Error'}: ${e.toString()}'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -736,9 +741,9 @@ class CameraScreenState extends State<CameraScreen>
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No photos yet. Capture some first!'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)?.noPhotosYet ?? 'No photos yet. Capture some first!'),
+          duration: const Duration(seconds: 1),
         ),
       );
     }

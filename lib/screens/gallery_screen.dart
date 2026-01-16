@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 // import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sv_timestamp/l10n/app_localizations.dart';
 import '../models/captured_image.dart';
 import '../utils/storage_service.dart';
 import '../widgets/image_card.dart';
@@ -23,9 +24,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Gallery',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        title: Text(
+          AppLocalizations.of(context)?.galleryTitle ?? 'Gallery',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
         actions: [
@@ -35,7 +36,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               onPressed: () {
                 _shareAllImages(context);
               },
-              tooltip: 'Share Images',
+              tooltip: AppLocalizations.of(context)?.share ?? 'Share Images',
             ),
         ],
       ),
@@ -53,7 +54,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Gallery is empty',
+                    AppLocalizations.of(context)?.galleryEmpty ?? 'Gallery is empty',
                     style: TextStyle(
                       fontSize: 18,
                       color: Theme.of(
@@ -63,7 +64,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Capture some images first',
+                    AppLocalizations.of(context)?.captureSomeImagesFirst ?? 'Capture some images first',
                     style: TextStyle(
                       fontSize: 14,
                       color: Theme.of(
@@ -118,7 +119,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.remove_red_eye),
-              title: const Text('Preview'),
+              title: Text(AppLocalizations.of(context)?.preview ?? 'Preview'),
               onTap: () {
                 Navigator.pop(context);
                 _showImagePreview(context, image);
@@ -126,7 +127,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.save_alt),
-              title: const Text('Save to Gallery'),
+              title: Text(AppLocalizations.of(context)?.saveToGallery ?? 'Save to Gallery'),
               onTap: () {
                 Navigator.pop(context);
                 _saveSingleImageToGallery(context, image);
@@ -134,7 +135,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.share),
-              title: const Text('Share'),
+              title: Text(AppLocalizations.of(context)?.share ?? 'Share'),
               onTap: () {
                 Navigator.pop(context);
                 _shareSingleImage(context, image);
@@ -142,7 +143,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete),
-              title: const Text('Delete'),
+              title: Text(AppLocalizations.of(context)?.delete ?? 'Delete'),
               onTap: () {
                 Navigator.pop(context);
                 _showDeleteDialog(context, image);
@@ -158,8 +159,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
     final storageService = Provider.of<StorageService>(context, listen: false);
     final images = storageService.capturedImages;
 
-    if (images.isEmpty) {
-      _showSnackBar(context, 'No images to share', Colors.orange);
+      if (images.isEmpty) {
+      _showSnackBar(context, AppLocalizations.of(context)?.noImagesToShare ?? 'No images to share', Colors.orange);
       return;
     }
 
@@ -174,7 +175,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       }
 
       if (files.isEmpty) {
-        _showSnackBar(context, 'No valid image files found', Colors.orange);
+        _showSnackBar(context, AppLocalizations.of(context)?.noValidImageFilesFound ?? 'No valid image files found', Colors.orange);
         return;
       }
 
@@ -186,10 +187,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
       );
 
       if (result.status == ShareResultStatus.success) {
-        _showSnackBar(context, 'Images shared successfully', Colors.green);
+        _showSnackBar(context, AppLocalizations.of(context)?.imagesSharedSuccessfully ?? 'Images shared successfully', Colors.green);
       }
     } catch (e) {
-      _showSnackBar(context, 'Failed to share images: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share images'}: $e', Colors.red);
     }
   }
 
@@ -208,13 +209,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
         );
 
         if (result.status == ShareResultStatus.success) {
-          _showSnackBar(context, 'Image shared successfully', Colors.green);
+          _showSnackBar(context, AppLocalizations.of(context)?.imageShared ?? 'Image shared successfully', Colors.green);
         }
       } else {
-        _showSnackBar(context, 'Image file not found', Colors.orange);
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
       }
     } catch (e) {
-      _showSnackBar(context, 'Failed to share: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToShare ?? 'Failed to share'}: $e', Colors.red);
     }
   }
 
@@ -230,17 +231,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
         //await ImageGallerySaver.saveFile(file.path);
 
         if (result['isSuccess'] == true) {
-          _showSnackBar(context, 'Image saved to gallery', Colors.green);
+          _showSnackBar(context, AppLocalizations.of(context)?.imageSavedToGallery ?? 'Image saved to gallery', Colors.green);
         } else {
-          _showSnackBar(context, 'Failed to save image', Colors.orange);
+          _showSnackBar(context, AppLocalizations.of(context)?.failedToSave ?? 'Failed to save image', Colors.orange);
         }
       } else {
-        _showSnackBar(context, 'Image file not found', Colors.orange);
+        _showSnackBar(context, AppLocalizations.of(context)?.imageFileNotFound ?? 'Image file not found', Colors.orange);
       }
     } on PlatformException catch (e) {
-      _showSnackBar(context, 'Permission denied: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.permissionDenied ?? 'Permission denied'}: $e', Colors.red);
     } catch (e) {
-      _showSnackBar(context, 'Failed to save: $e', Colors.red);
+      _showSnackBar(context, '${AppLocalizations.of(context)?.failedToSave ?? 'Failed to save'}: $e', Colors.red);
     }
   }
 
@@ -248,12 +249,12 @@ class _GalleryScreenState extends State<GalleryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Image'),
-        content: const Text('Are you sure you want to delete this image?'),
+        title: Text(AppLocalizations.of(context)?.deleteImageTitle ?? 'Delete Image'),
+        content: Text(AppLocalizations.of(context)?.deleteImageContent ?? 'Are you sure you want to delete this image?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
           ),
           TextButton(
             onPressed: () async {
@@ -263,9 +264,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
               );
               await storageService.deleteImage(image as String);
               Navigator.pop(context);
-              _showSnackBar(context, 'Image deleted', Colors.red);
+              _showSnackBar(context, AppLocalizations.of(context)?.imageDeletedSuccessfully ?? 'Image deleted', Colors.red);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)?.delete ?? 'Delete', style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

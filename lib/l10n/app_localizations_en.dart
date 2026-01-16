@@ -220,4 +220,157 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationLabel => 'Location:';
+
+    @override
+    String get galleryTitle => 'Gallery';
+
+    @override
+    String get galleryEmpty => 'Gallery is empty';
+
+    @override
+    String get captureSomeImagesFirst => 'Capture some images first';
+
+    @override
+    String get noImagesToShare => 'No images to share';
+
+    @override
+    String get noValidImageFilesFound => 'No valid image files found';
+
+    @override
+    String get imagesSharedSuccessfully => 'Images shared successfully';
+
+    @override
+    String get imageFileNotFound => 'Image file not found';
+
+    @override
+    String get imageShared => 'Image shared successfully';
+
+    @override
+    String get failedToShare => 'Failed to share';
+
+    @override
+    String get imageSavedToGallery => 'Image saved to gallery';
+
+    @override
+    String get failedToSave => 'Failed to save';
+
+    @override
+    String get permissionDenied => 'Permission denied';
+
+    @override
+    String get shareImage => 'Share Image';
+
+    @override
+    String get share => 'Share';
+
+    @override
+    String get copy => 'Copy';
+
+    @override
+    String get save => 'Save';
+
+    @override
+    String get more => 'More';
+
+    @override
+    String get imagePathCopied => 'Image path copied to clipboard';
+
+    @override
+    String get imageEditingComingSoon => 'Image editing coming soon';
+
+    @override
+    String get imageDetailsCopied => 'Image details copied to clipboard';
+
+    @override
+    String get failedToCopy => 'Failed to copy';
+
+    @override
+    String get deleteImageTitle => 'Delete Image';
+
+    @override
+    String get deleteImageContent => 'Are you sure you want to delete this image?';
+
+    @override
+    String get delete => 'Delete';
+
+    @override
+    String get imageDeletedSuccessfully => 'Image deleted successfully';
+
+    @override
+    String get tapGalleryButton => 'Tap the gallery button in the bottom left corner';
+
+    @override
+    String get noPhotosAvailable => 'No photos available';
+
+    @override
+    String get preview => 'Preview';
+
+    @override
+    String get saveToGallery => 'Save to Gallery';
+
+    @override
+    String get visible => 'Visible';
+
+    @override
+    String get backgroundColor => 'Background Color';
+
+    @override
+    String get textStyle => 'Text Style';
+
+    @override
+    String get addCustomText => 'Add Custom Text';
+
+    @override
+    String get add => 'Add';
+
+    @override
+    String get saveTemplate => 'Save Template';
+
+    @override
+    String get logo => 'Logo';
+
+    @override
+    String get timestampLabel => 'Timestamp';
+
+    @override
+    String get locationLabelShort => 'Location';
+
+    @override
+    String get addressLabelShort => 'Address';
+
+    @override
+    String get customTextLabel => 'Custom Text';
+
+    @override
+    String get gpsCoordinatesLabel => 'GPS Coordinates';
+
+    @override
+    String get deviceInfoLabel => 'Device Info';
+
+    @override
+    String get borderLabel => 'Border';
+
+    @override
+    String get qrCodeLabel => 'QR Code';
+
+    @override
+    String get addElements => 'Add Elements';
+
+    @override
+    String get quickTemplates => 'Quick Templates';
+
+    @override
+    String get textPresets => 'Text Presets';
+
+    @override
+    String get classicBottom => 'Classic Bottom';
+
+    @override
+    String get topRightLogo => 'Top Right Logo';
+
+    @override
+    String get fullOverlay => 'Full Overlay';
+
+    @override
+    String get enterCustomTextHint => 'Enter custom text...';
 }
